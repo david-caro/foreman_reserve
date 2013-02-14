@@ -39,7 +39,7 @@ module ForemanReserve
         #"TODO redirect_back_or_to(main_app.root_path) "
         redirect_to('/')  and return
       end
-      host_name     = params[:host_name]
+      host_name     = (params[:host_name] || '')
       query         = params[:query]
       amount        = (params[:amount] || 0 ).to_i
       if host_name != ''
