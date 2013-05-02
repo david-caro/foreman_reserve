@@ -3,15 +3,14 @@ module ForemanReserve
 
     unloadable
 
-
     def get_reserved(query='')
-        hosts = User.current.admin? ? Host : Host.my_hosts
-        hosts.search_for(query).includes(:host_parameters).where("parameters.name = ?", "RESERVED").where("managed = ?", "true").where("parameters.value !~ ?", "false")
+      hosts = User.current.admin? ? Host : Host.my_hosts
+      hosts.search_for(query).includes(:host_parameters).where("parameters.name = ?", "RESERVED").where("managed = ?", "true").where("parameters.value !~ ?", "false")
     end
 
     def get_free(query='')
-        hosts = User.current.admin? ? Host : Host.my_hosts
-        hosts.search_for(query).includes(:host_parameters).where("parameters.name = ?", "RESERVED").where("managed = ?", "true").where("parameters.value ~ ?", "false")
+      hosts = User.current.admin? ? Host : Host.my_hosts
+      hosts.search_for(query).includes(:host_parameters).where("parameters.name = ?", "RESERVED").where("managed = ?", "true").where("parameters.value ~ ?", "false")
     end
 
     def reserve
@@ -22,10 +21,22 @@ module ForemanReserve
       end
       amount          = (params[:amount] || 1).to_i
       reason          = params[:reason] || 'true'
-      potential_hosts = get_free(params[:query])
-      return not_found if potential_hosts.empty?
-      return not_acceptable if potential_hosts.count < amount
-      @hosts = potential_hosts[0..(amount-1)].each { |host| host.reserve!(reason) }
+      ## Lock to avoid reserving the same host twice
+      unless File.exists? "/tmp/foreman_reserve.lock"
+        File.open("/tmp/foreman_reserve.lock", 'w') {}
+      end 
+      lock = File.new("/tmp/foreman_reserve.lock")
+      begin
+        lock.flock(File::LOCK_EX)
+        potential_hosts = get_free(params[:query])
+        return not_found if potential_hosts.empty?
+        return not_acceptable if potential_hosts.count < amount
+        @hosts = potential_hosts[0..(amount-1)].each do
+          |host| host.reserve!(reason)
+        end
+      ensure
+        lock.flock(File::LOCK_UN)
+      end
       respond_to do |format|
         format.json {render :json => @hosts }
         format.yaml {render :text => @hosts.to_yaml}
@@ -118,7 +129,7 @@ module ForemanReserve
         format.html {not_found }
       end
     end
-       
+
     def not_acceptable
        head :status => 406
     end
