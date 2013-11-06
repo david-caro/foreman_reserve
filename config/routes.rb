@@ -1,9 +1,9 @@
 Rails.application.routes.draw do
 
-  get "api/hosts_reserve"          => "foreman_reserve/hosts#reserve"
-  get "api/hosts_release"          => "foreman_reserve/hosts#release"
-  get "api/show_available"    	   => "foreman_reserve/hosts#show_available"
-  get "api/show_reserved"          => "foreman_reserve/hosts#show_reserved"
-  get "api/update_reserved_reason" => "foreman_reserve/hosts#update_reason"
+  get "api/hosts_reserve"          => "api/v1/foreman_reserve#reserve"
+  get "api/hosts_release"          => "api/v1/foreman_reserve#release"
+  get "api/show_available"         => "api/v1/foreman_reserve#show_available"
+  get "api/show_reserved"          => "api/v1/foreman_reserve#show_reserved"
+  get "api/update_reserved_reason" => "api/v1/foreman_reserve#update_reason"
 
 end
