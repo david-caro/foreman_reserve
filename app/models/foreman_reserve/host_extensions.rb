@@ -4,7 +4,7 @@ module ForemanReserve
       module InstanceMethods
         def reserve!(reason = 'true')
           param = "RESERVED"
-          if p=host_parameters.find_by_name(param)
+            if p=host_parameters.find_by_name(param)
             p.update_attribute(:value, reason)
           else
             host_parameters.create!(:name => param, :value => reason)
@@ -18,7 +18,7 @@ module ForemanReserve
         end
         def as_json(options={})
           super(:methods => [:host_parameters])
-        end
       end
+    end
   end
 end

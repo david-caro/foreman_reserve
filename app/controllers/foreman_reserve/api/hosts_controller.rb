@@ -1,17 +1,27 @@
-module ForemanReserve
-  class HostsController < ::HostsController
-
-    unloadable
+module Api
+  module V1
+    class ForemanReserveController < Api::V1::BaseController
+      unloadable
 
     def get_reserved(query='')
-      hosts = User.current.admin? ? Host : Host.my_hosts
+      hosts = User.current.admin? ? Host::Managed : Host::Managed.my_hosts
       hosts.search_for(query).includes(:host_parameters).where("parameters.name = ?", "RESERVED").where("managed = ?", "true").where("parameters.value !~ ?", "false")
     end
 
     def get_free(query='')
-      hosts = User.current.admin? ? Host : Host.my_hosts
+      hosts = User.current.admin? ? Host::Managed : Host::Managed.my_hosts
       hosts.search_for(query).includes(:host_parameters).where("parameters.name = ?", "RESERVED").where("managed = ?", "true").where("parameters.value ~ ?", "false")
     end
+
+    def not_found(exception = nil)
+        logger.debug "not found: #{exception}" if exception
+        respond_to do |format|
+            format.html { render "common/404", :status => 404 }
+            format.json { head :status => 404}
+            format.yaml { head :status => 404}
+        end 
+        true
+    end 
 
     def reserve
       unless api_request?
@@ -31,8 +41,11 @@ module ForemanReserve
         potential_hosts = get_free(params[:query])
         return not_found if potential_hosts.empty?
         return not_acceptable if potential_hosts.count < amount
-        @hosts = potential_hosts[0..(amount-1)].each do
-          |host| host.reserve!(reason)
+        @hosts = potential_hosts[0..(amount-1)].each do |host|
+          logger.error host.class.name
+          logger.error host.class.instance_methods(false)
+          logger.error Host.class.instance_methods(false)
+          host.reserve!(reason)
         end
       ensure
         lock.flock(File::LOCK_UN)
@@ -86,53 +99,54 @@ module ForemanReserve
       end
     end
 
-    def show_available
-      unless api_request?
-        error "This operation is only valid via an API request"
-        #"TODO redirect_back_or_to(main_app.root_path) "
-        redirect_to('/')  and return
+      def show_available
+        unless api_request?
+          error "This operation is only valid via an API request"
+          #"TODO redirect_back_or_to(main_app.root_path) "
+          redirect_to('/')  and return
+        end
+        amount = (params[:amount] || 0).to_i
+        hosts  = get_free(params[:query])
+        return not_found if hosts.empty?
+        if amount != 0
+          return not_acceptable if hosts.count < amount
+          hosts = hosts[0..(amount-1)]
+        end
+        respond_to do |format|
+          format.json {render :json => hosts }
+          format.yaml {render :text => hosts.to_yaml}
+          format.html {not_found }
+        end
       end
-      amount = (params[:amount] || 0).to_i
-      hosts  = get_free(params[:query])
-      return not_found if hosts.empty?
-      if amount != 0
-        return not_acceptable if hosts.count < amount
-        hosts = hosts[0..(amount-1)]
-      end
-      respond_to do |format|
-        format.json {render :json => hosts }
-        format.yaml {render :text => hosts.to_yaml}
-        format.html {not_found }
-      end
-    end
 
-    def update_reason
-      unless api_request?
-        error "This operation is only valid via an API request"
-        #"TODO redirect_back_or_to(main_app.root_path) "
-        redirect_to('/')  and return
+      def update_reason
+        unless api_request?
+          error "This operation is only valid via an API request"
+          #"TODO redirect_back_or_to(main_app.root_path) "
+          redirect_to('/')  and return
+        end
+        amount          = (params[:amount] || 0).to_i
+        reason          = params[:reason] || 'true'
+        potential_hosts = get_reserved(params[:query])
+        return not_found if potential_hosts.empty?
+        if amount != 0
+          return not_acceptable if potential_hosts.count < amount
+          potential_hosts[0..(amount-1)].each { |host| host.reserve!(reason) }
+        else
+          potential_hosts.each { |host| host.reserve!(reason) }
+        end
+        @hosts = get_reserved(params[:query])
+        respond_to do |format|
+          format.json {render :json => @hosts }
+          format.yaml {render :text => @hosts.to_yaml}
+          format.html {not_found }
+        end
       end
-      amount          = (params[:amount] || 0).to_i
-      reason          = params[:reason] || 'true'
-      potential_hosts = get_reserved(params[:query])
-      return not_found if potential_hosts.empty?
-      if amount != 0
-        return not_acceptable if potential_hosts.count < amount
-        potential_hosts[0..(amount-1)].each { |host| host.reserve!(reason) }
-      else
-        potential_hosts.each { |host| host.reserve!(reason) }
-      end
-      @hosts = get_reserved(params[:query])
-      respond_to do |format|
-        format.json {render :json => @hosts }
-        format.yaml {render :text => @hosts.to_yaml}
-        format.html {not_found }
-      end
-    end
 
-    def not_acceptable
-       head :status => 406
-    end
+      def not_acceptable
+        head :status => 406
+      end
 
- end
+    end
+  end
 end
