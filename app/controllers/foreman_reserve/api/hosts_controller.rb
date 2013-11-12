@@ -24,11 +24,6 @@ module Api
     end 
 
     def reserve
-      unless api_request?
-        error "This operation is only valid via an API request"
-        #"TODO redirect_back_or_to(main_app.root_path) "
-        redirect_to('/')  and return
-      end
       amount          = (params[:amount] || 1).to_i
       reason          = params[:reason] || 'true'
       ## Lock to avoid reserving the same host twice
@@ -58,11 +53,6 @@ module Api
     end
 
     def release
-      unless api_request?
-        error "This operation is only valid via an API request"
-        #"TODO redirect_back_or_to(main_app.root_path) "
-        redirect_to('/')  and return
-      end
       host_name     = (params[:host_name] || '')
       query         = params[:query]
       amount        = (params[:amount] || 0 ).to_i
@@ -85,11 +75,6 @@ module Api
     end
 
     def show_reserved
-      unless api_request?
-        error "This operation is only valid via an API request"
-        #"TODO redirect_back_or_to(main_app.root_path) "
-        redirect_to('/')  and return
-      end
       hosts = get_reserved(params[:query])
       return not_found if hosts.empty?
       respond_to do |format|
@@ -100,11 +85,6 @@ module Api
     end
 
       def show_available
-        unless api_request?
-          error "This operation is only valid via an API request"
-          #"TODO redirect_back_or_to(main_app.root_path) "
-          redirect_to('/')  and return
-        end
         amount = (params[:amount] || 0).to_i
         hosts  = get_free(params[:query])
         return not_found if hosts.empty?
@@ -120,11 +100,6 @@ module Api
       end
 
       def update_reason
-        unless api_request?
-          error "This operation is only valid via an API request"
-          #"TODO redirect_back_or_to(main_app.root_path) "
-          redirect_to('/')  and return
-        end
         amount          = (params[:amount] || 0).to_i
         reason          = params[:reason] || 'true'
         potential_hosts = get_reserved(params[:query])
