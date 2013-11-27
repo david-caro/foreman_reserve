@@ -5,12 +5,28 @@ module Api
 
     def get_reserved(query='')
       hosts = User.current.admin? ? Host::Managed : Host::Managed.my_hosts
-      hosts.search_for(query).includes(:host_parameters).where("parameters.name = ?", "RESERVED").where("managed = ?", "true").where("parameters.value !~ ?", "false")
+      hosts.search_for(query)
+      hosts.each do |host|
+        params = host.info()['parameters']
+        if params and
+            params.key?('RESERVED') and 
+            params['RESERVED'] != 'false'
+          host
+        end
+      end
     end
 
     def get_free(query='')
       hosts = User.current.admin? ? Host::Managed : Host::Managed.my_hosts
-      hosts.search_for(query).includes(:host_parameters).where("parameters.name = ?", "RESERVED").where("managed = ?", "true").where("parameters.value ~ ?", "false")
+      hosts.search_for(query)
+      hosts.each do |host|
+        params = host.info()['parameters']
+        if params
+            and params.has_key('RESERVED')
+            and params['RESERVED'] == 'false'
+          host
+        end
+      end
     end
 
     def not_found(exception = nil)
