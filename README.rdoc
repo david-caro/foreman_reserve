@@ -1,39 +1,73 @@
 = foreman_reserve
 
+{<img src="https://badge.fury.io/rb/foreman_reserve.png" alt="Gem Version" />}[http://badge.fury.io/rb/foreman_reserve]
+
 This gem will added a route to the API to return the name of available host(s)
 
 = Installation:
 
-gem 'foreman_reserve', :git => "https://github.com/isratrade/foreman_reserve.git"
+You have to make sure that the gem is available to foreman, to do that the
+recommended way is to add a new file to <i>$FOREMAN_DIR/bundler.d</i> named
+<i>foreman_reserve.rb</i> with the next content:
+
+* You can use the git code to get the latest:
+
+ gem 'foreman_reserve', :git => "https://github.com/isratrade/foreman_reserve.git"
+
+* Or the gem from rubygems:
+
+ gem 'foreman_reserve'
+
+After that you'll need to create the bundle for foreman, as foreman user run
+from the <i>$FOREMAN_DIR</i>:
+
+<tt>>$ bunde --deploy</tt>
+
+
+== Foreman 1.1
 
 In order to work, the foreman application must be the following two lines commented out.
 
 config/routes.rb 
-	# match '*a', :to => 'errors#routing'
+ # match '*a', :to => 'errors#routing'
 
 config/routes/v1.rb
-	# match '*other', :to => 'home#route_error'
+ # match '*other', :to => 'home#route_error'
 
 = Usage
 
+To make a host 'reservable', you need to make sure it has a parameter named
+<b>RESERVED</b>, that parameter will be used to store the current reservation
+status, you can safely add the parameter to a hostgroup for the hsot to inherit
+from.
+
 To return 1 host:
-curl -u admin:secret -H 'accept:application/json' http://0.0.0.0:3000/api/hosts_reserve
+
+<tt>>$ curl -u admin:secret -H 'accept:application/json' http://0.0.0.0:3000/api/hosts_reserve</tt>
 
 To return multiple hosts, pass a parameter called 'amount'
 
-curl -u admin:secret -H 'accept:application/json' http://0.0.0.0:3000/api/hosts_reserve?amount=3
+<tt>>$ curl -u admin:secret -H 'accept:application/json' http://0.0.0.0:3000/api/hosts_reserve?amount=3</tt>
 
 Filter using a specific query: (name ~ virt%)
 
-curl -u admin:secret -H 'accept:application/json' 'http://0.0.0.0:3000/api/hosts_reserve?query=name%20~%20virt%25'
+<tt>>$ curl -u admin:secret -H 'accept:application/json' 'http://0.0.0.0:3000/api/hosts_reserve?query=name%20~%20virt%25'</tt>
 
 Release a specific host:
 
-curl -u admin:secret -H 'accept:application/json' 'http://0.0.0.0:3000/api/hosts_release?host_name=myreservedhost'
+<tt>>$ curl -u admin:secret -H 'accept:application/json' 'http://0.0.0.0:3000/api/hosts_release?host_name=myreservedhost'</tt>
 
 Release a group of hosts using a query: (name ~ virt%)
 
-curl -u admin:secret -H 'accept:application/json' 'http://0.0.0.0:3000/api/hosts_reserve?query=name%20~%20virt%25'
+<tt>>$ curl -u admin:secret -H 'accept:application/json' 'http://0.0.0.0:3000/api/hosts_reserve?query=name%20~%20virt%25'</tt>
+
+== foreman-python
+
+In order to use from python, there's a python module that already includes
+this plugin calls, you can find it on pypi or on github:
+
+* https://github.com/david-caro/python-foreman
+* https://pypi.python.org/pypi/python-foreman
 
 == Contributing to foreman_reserve
  
@@ -47,6 +81,6 @@ curl -u admin:secret -H 'accept:application/json' 'http://0.0.0.0:3000/api/hosts
 
 == Copyright
 
-Copyright (c) 2012 Joseph Mitchell Magen. See LICENSE.txt for
+Copyright (c) 2013 Joseph Mitchell Magen and David Caro. See LICENSE.txt for
 further details.
 
