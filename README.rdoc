@@ -12,7 +12,7 @@ recommended way is to add a new file to <i>$FOREMAN_DIR/bundler.d</i> named
 
 * You can use the git code to get the latest:
 
- gem 'foreman_reserve', :git => "https://github.com/isratrade/foreman_reserve.git"
+ gem 'foreman_reserve', :git => "https://github.com/david-caro/foreman_reserve.git"
 
 * Or the gem from rubygems:
 
