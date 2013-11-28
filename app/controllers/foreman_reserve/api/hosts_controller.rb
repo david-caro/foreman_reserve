@@ -7,14 +7,12 @@ module Api
       # @param query [String] Query to filter the hosts with
       def get_reserved(query='')
         hosts = User.current.admin? ? Host::Managed : Host::Managed.my_hosts
-        hosts.search_for(query)
-        hosts.each do |host|
+        hosts = hosts.search_for(query)
+        hosts.find_all do |host|
           params = host.info()['parameters']
-          if params and
+          params and
               params.key?('RESERVED') and
               params['RESERVED'] != 'false'
-            host
-          end
         end
       end
 
@@ -22,14 +20,12 @@ module Api
       # @param query [String] Query to filter the hosts with
       def get_free(query='')
         hosts = User.current.admin? ? Host::Managed : Host::Managed.my_hosts
-        hosts.search_for(query)
-        hosts.each do |host|
+        hosts = hosts.search_for(query)
+        hosts.find_all do |host|
           params = host.info()['parameters']
-          if params and
-              params.has_key('RESERVED') and
+          params and
+              params.key?('RESERVED') and
               params['RESERVED'] == 'false'
-            host
-          end
         end
       end
 
@@ -72,9 +68,6 @@ module Api
           return not_found if potential_hosts.empty?
           return not_acceptable if potential_hosts.count < amount
           @hosts = potential_hosts[0..(amount-1)].each do |host|
-            logger.error host.class.name
-            logger.error host.class.instance_methods(false)
-            logger.error Host.class.instance_methods(false)
             host.reserve!(reason)
           end
         ensure
