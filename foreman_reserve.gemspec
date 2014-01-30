@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "foreman_reserve"
-  s.version = "0.1.8.1"
+  s.version = "0.1.8.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["David Caro", "Joseph Mitchell Magen"]
@@ -32,7 +32,7 @@ Gem::Specification.new do |s|
     "lib/foreman_reserve/engine.rb",
     "test/helper.rb"
   ]
-  s.homepage = "http://github.com/isratrade/foreman_reserve"
+  s.homepage = "http://github.com/david-caro/foreman_reserve"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
   s.rubygems_version = "2.0.14"

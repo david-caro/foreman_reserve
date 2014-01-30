@@ -15,13 +15,13 @@ require 'jeweler'
 Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "foreman_reserve"
-  gem.homepage = "http://github.com/isratrade/foreman_reserve"
+  gem.homepage = "http://github.com/david-caro/foreman_reserve"
   gem.license = "MIT"
   gem.summary = %Q{Plugin engine for Foreman to reserve a host}
   gem.description = %Q{Plugin engine for Foreman to reserve a host}
   gem.email = "dcaroest@redhat.com"
   gem.authors = ["David Caro", "Joseph Mitchell Magen"]
-  gem.version = '0.1.8.1'
+  gem.version = '0.1.8.2'
 end
 #Jeweler::RubygemsDotOrgTasks.new
 
