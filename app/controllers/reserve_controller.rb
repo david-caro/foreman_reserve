@@ -1,12 +1,10 @@
-module Api
-  module V1
-    class ForemanReserveController < Api::V1::BaseController
+    class ReserveController < ::AplicationController
       unloadable
 
       # Get the list of reserved hosts
       # @param query [String] Query to filter the hosts with
       def get_reserved(query='')
-        hosts = User.current.admin? ? Host::Managed : Host::Managed.my_hosts
+        hosts = User.current.admin? ? Host : Host.my_hosts
         hosts = hosts.search_for(query)
         hosts.find_all do |host|
           params = host.info()['parameters']
@@ -19,7 +17,7 @@ module Api
       # Get the list of available hosts
       # @param query [String] Query to filter the hosts with
       def get_free(query='')
-        hosts = User.current.admin? ? Host::Managed : Host::Managed.my_hosts
+        hosts = User.current.admin? ? Host : Host.my_hosts
         hosts = hosts.search_for(query)
         hosts.find_all do |host|
           params = host.info()['parameters']
@@ -33,7 +31,7 @@ module Api
       # @param exception [String] Message to show
       def not_found(exception = nil)
           logger.debug "not found: #{exception}" if exception
-          respond_to do |format|
+            respond_to do |format|
               format.html { render "common/404", :status => 404 }
               format.json { head :status => 404}
               format.yaml { head :status => 404}
@@ -113,7 +111,7 @@ module Api
           format.html {not_found }
         end
       end
-
+    
       # <b>API METHOD</b>: Show the list of resrved hosts
       #
       # <b>Query parameters:</b>
@@ -129,7 +127,7 @@ module Api
           format.html {not_found }
         end
       end
-
+    
       # <b>API METHOD</b>: Show the list of available hosts, will return 406
       # (Not acceptable) if <tt>amount</tt> given and not enough free hosts found
       #
@@ -153,7 +151,7 @@ module Api
           format.html {not_found }
         end
       end
-
+    
       # <b>API METHOD</b>: Update the reserved reason
       #
       # <b>Query parameters:</b>
@@ -191,5 +189,3 @@ module Api
       end
 
     end
-  end
-end
