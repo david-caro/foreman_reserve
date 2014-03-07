@@ -1,45 +1,8 @@
 module Api
-  module V1
-    class ForemanReserveController < Api::V1::BaseController
+  module V2
+    class ReservesController < V2::BaseController
       unloadable
 
-      # Get the list of reserved hosts
-      # @param query [String] Query to filter the hosts with
-      def get_reserved(query='')
-        hosts = User.current.admin? ? Host::Managed : Host::Managed.my_hosts
-        hosts = hosts.search_for(query)
-        hosts.find_all do |host|
-          params = host.info()['parameters']
-          params and
-              params.key?('RESERVED') and
-              params['RESERVED'] != 'false'
-        end
-      end
-
-      # Get the list of available hosts
-      # @param query [String] Query to filter the hosts with
-      def get_free(query='')
-        hosts = User.current.admin? ? Host::Managed : Host::Managed.my_hosts
-        hosts = hosts.search_for(query)
-        hosts.find_all do |host|
-          params = host.info()['parameters']
-          params and
-              params.key?('RESERVED') and
-              params['RESERVED'] == 'false'
-        end
-      end
-
-      # Return not found
-      # @param exception [String] Message to show
-      def not_found(exception = nil)
-          logger.debug "not found: #{exception}" if exception
-          respond_to do |format|
-              format.html { render "common/404", :status => 404 }
-              format.json { head :status => 404}
-              format.yaml { head :status => 404}
-          end
-          true
-      end
 
       # <b>API METHOD</b>: Reserve one or more hosts, will return 404 if the
       # given query gives no results and 406 (Not acceptable) if not enough free
@@ -74,9 +37,9 @@ module Api
           lock.flock(File::LOCK_UN)
         end
         respond_to do |format|
-          format.json {render :json => @hosts }
-          format.yaml {render :text => @hosts.to_yaml}
-          format.html {not_found }
+          format.json { render :json => @hosts }
+          format.yaml { render :text => @hosts.to_yaml }
+          format.html { not_found }
         end
       end
 
@@ -87,7 +50,7 @@ module Api
       #
       # * <tt><b>amount</b> (Int)</tt> <i>(defaults to: <tt>1</tt>)</i> ---
       #   Amount of hosts to release
-      # * <tt><b>host_name</b> (String)</tt> 
+      # * <tt><b>host_name</b> (String)</tt>
       #   <i>(defaults to: <tt>''</tt>)</i> ---
       #   If given, will also filter by that host name
       # * <tt><b>query</b> (String)</tt> <i>(defaults to: <tt>''</tt>)</i> ---
@@ -108,9 +71,9 @@ module Api
           @hosts = reserved_hosts.each { |host| host.release! }
         end
         respond_to do |format|
-          format.json {render :json => @hosts.map(&:name) }
-          format.yaml {render :text => @hosts.to_yaml}
-          format.html {not_found }
+          format.json { render :json => @hosts.map(&:name) }
+          format.yaml { render :text => @hosts.to_yaml }
+          format.html { render :json => hosts }
         end
       end
 
@@ -124,9 +87,9 @@ module Api
         hosts = get_reserved(params[:query])
         return not_found if hosts.empty?
         respond_to do |format|
-          format.json {render :json => hosts }
-          format.yaml {render :text => hosts.to_yaml}
-          format.html {not_found }
+          format.json { render :json => hosts }
+          format.yaml { render :text => hosts.to_yaml }
+          format.html { render :json => hosts }
         end
       end
 
@@ -148,9 +111,9 @@ module Api
           hosts = hosts[0..(amount-1)]
         end
         respond_to do |format|
-          format.json {render :json => hosts }
-          format.yaml {render :text => hosts.to_yaml}
-          format.html {not_found }
+          format.json { render :json => hosts }
+          format.yaml { render :text => hosts.to_yaml }
+          format.html { render :json => hosts }
         end
       end
 
@@ -179,10 +142,60 @@ module Api
         end
         @hosts = get_reserved(params[:query])
         respond_to do |format|
-          format.json {render :json => @hosts }
-          format.yaml {render :text => @hosts.to_yaml}
-          format.html {not_found }
+          format.json { render :json => @hosts }
+          format.yaml { render :text => @hosts.to_yaml }
+          format.html { render :json => hosts }
         end
+      end
+
+      private
+
+      # Get the list of reserved hosts
+      # @param query [String] Query to filter the hosts with
+      def get_reserved(query='')
+        hosts = User.current.admin? ? Host : my_hosts
+        hosts = hosts.search_for(query)
+        hosts.find_all do |host|
+          params = host.info()['parameters']
+          params and
+            params.key?('RESERVED') and
+            params['RESERVED'] != 'false'
+        end
+      end
+
+      # Get the list of available hosts
+      # @param query [String] Query to filter the hosts with
+      def get_free(query='')
+        hosts = User.current.admin? ? Host : my_hosts
+        hosts = hosts.search_for(query)
+        hosts.find_all do |host|
+          params = host.info()['parameters']
+          params and
+            params.key?('RESERVED') and
+            params['RESERVED'] == 'false'
+        end
+      end
+
+      def my_hosts
+        if SETTINGS[:version].to_s.to_f >= 1.5
+          # Foreman 1.5+
+          Host.authorized(:view_hosts, Host)
+        else
+          # Foreman < 1.5
+          Host.my_hosts
+        end
+      end
+
+      # Return not found
+      # @param exception [String] Message to show
+      def not_found(exception = nil)
+        logger.debug "not found: #{exception}" if exception
+        respond_to do |format|
+          format.html { render "common/404", :status => 404 }
+          format.json { head :status => 404}
+          format.yaml { head :status => 404}
+        end
+        true
       end
 
       # Return HTTP 406 (Not acceptable)

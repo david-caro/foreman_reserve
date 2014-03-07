@@ -1,9 +1,27 @@
 Rails.application.routes.draw do
 
-  get "api/hosts_reserve"          => "api/v1/foreman_reserve#reserve"
-  get "api/hosts_release"          => "api/v1/foreman_reserve#release"
-  get "api/show_available"         => "api/v1/foreman_reserve#show_available"
-  get "api/show_reserved"          => "api/v1/foreman_reserve#show_reserved"
-  get "api/update_reserved_reason" => "api/v1/foreman_reserve#update_reason"
+  namespace :api, :defaults => {:format => 'json'} do
+    get 'hosts_reserve'          => 'v2/reserves#reserve'
+    get 'hosts_release'          => 'v2/reserves#release'
+    get 'show_available'         => 'v2/reserves#show_available'
+    get 'show_reserved'          => 'v2/reserves#show_reserved'
+    get 'update_reserved_reason' => 'v2/reserves#update_reason'
+
+    scope "(:apiv)", :module => :v2,
+                     :defaults => {:apiv => 'v2'},
+                     :apiv => /v1|v2/,
+                     :constraints => ApiConstraints.new(:version => 2) do
+
+      resources :reserves, :only => [] do
+        collection do
+          get 'reserve'
+          get 'release'
+          get 'show_available'
+          get 'show_reserved'
+          get 'update_reserved_reason' => 'reserves#update_reason'
+        end
+      end
+    end
+  end
 
 end
