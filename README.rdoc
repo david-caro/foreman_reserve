@@ -37,8 +37,9 @@ config/routes/v1.rb
 = Usage
 
 To make a host 'reservable', you need to make sure it has a parameter named
-<b>RESERVED</b>, that parameter will be used to store the current reservation
-status, you can safely add the parameter to a hostgroup for the hsot to inherit
+<b>RESERVED</b>, When this parameter is added it should be set to 'false'.
+This parameter will be used to store the current reservation
+status, you can safely add the parameter to a hostgroup for the host to inherit
 from.
 
 To return 1 host:
