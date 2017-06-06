@@ -39,7 +39,7 @@ module Api
         respond_to do |format|
           format.json { render :json => @hosts }
           format.yaml { render :text => @hosts.to_yaml }
-          format.html { not_found }
+          format.html { render :json => hosts }
         end
       end
 
